@@ -1,0 +1,163 @@
+🧠 1. Cómo funciona un programa (nivel bajo)
+
+Antes de assembler, debes entender qué pasa realmente:
+
+Qué es memoria (RAM)
+Qué es un proceso
+Qué hace la CPU
+Ciclo básico:
+👉 fetch → decode → execute
+
+Si no entiendes esto, assembler se vuelve magia negra.
+
+⚙️ 2. Arquitectura básica del CPU
+
+Esto es CLAVE:
+
+🔹 Registros
+
+Son como variables ultrarrápidas dentro del CPU:
+
+eax, ebx, ecx, edx (en x86)
+rsp, rbp (stack)
+
+👉 Si no entiendes registros, estás muerto en assembler.
+
+🔹 Stack (pila)
+
+MUY importante:
+
+push → mete datos
+pop → saca datos
+
+Y entender:
+
+call / ret
+cómo se pasan parámetros
+🧮 3. Sistemas de numeración
+
+Assembler usa esto TODO el tiempo:
+
+Binario (base 2)
+Hexadecimal (base 16) 🔥
+
+Ejemplo:
+
+0xFF = 255
+
+👉 Si no manejas hex, te vas a frustrar.
+
+🔀 4. Operaciones bit a bit
+
+Fundamental:
+
+AND (&)
+OR (|)
+XOR (^)
+SHIFT (<<, >>)
+
+Esto es el lenguaje natural del assembler.
+
+🧱 5. Punteros y direcciones
+
+Debes entender:
+
+Qué es una dirección de memoria
+Diferencia entre:
+valor
+dirección
+
+Ejemplo mental:
+
+x = 5
+&x = dirección donde está guardado el 5
+
+Assembler trabaja con direcciones TODO el tiempo.
+
+🔁 6. Control de flujo (como en C)
+
+Esto lo necesitas claro:
+
+if → cmp + jmp
+while / for → saltos (jmp, je, jne, etc.)
+
+Assembler NO tiene estructuras bonitas.
+
+💻 7. C (muy recomendable)
+
+No obligatorio, pero casi:
+
+👉 Saber C te ayuda a entender assembler brutalmente
+
+Porque:
+
+C está muy cerca del hardware
+Puedes ver cómo se traduce a assembler
+🔧 8. Sistema operativo (básico)
+
+Especialmente en Linux (ya que usas Kali):
+
+Qué es una syscall
+Qué hace el kernel
+Entrada/salida (I/O)
+⚠️ LO QUE NO NECESITAS (al inicio)
+
+No te compliques con:
+
+pipelines del CPU
+optimizaciones locas
+microarquitectura profunda
+
+Eso es nivel dios después.
+
+🧠 Resumen rápido (checklist)
+
+Si sabes esto → ya puedes entrar:
+
+✔ Memoria y CPU
+✔ Registros
+✔ Stack
+✔ Hexadecimal
+✔ Bitwise
+✔ Punteros
+✔ if / loops
+✔ (ideal) C
+
+#######################################################################
+#######################################################################
+
+🗺️ Mapa de Ruta: De Humano a "Sombrero Rojo" (ASM)
+
+🟢 Fase 1: Los Cimientos (El Hardware)
+
+Antes de tocar una tecla, debemos entender dónde vive el código.
+
+    1.1 La Memoria RAM: Entenderla como un edificio lleno de casilleros numerados (Direcciones).
+    1.2 La CPU y sus "Manos": Qué son los Registros y por qué el CPU no puede hacer nada sin ellos.
+    1.3 El Ciclo de Vida del Código: El proceso de Fetch → Decode → Execute (Buscar, Entender, Hacer).
+
+🟡 Fase 2: El Idioma de la Máquina (Lógica y Números)
+
+Aquí es donde dejamos de pensar en base 10 (decimal).
+
+    2.1 Sistemas de Numeración: Dominar el Binario (0-1) y el Hexadecimal (0-F).
+    2.2 Operaciones Bit a Bit (Bitwise): Los operadores lógicos AND, OR, XOR, NOT y los desplazamientos (Shifts).
+    2.3 Punteros y Direccionamiento: Entender la diferencia crítica entre el valor (el dato) y la dirección (dónde vive el dato).
+
+🔴 Fase 3: La Estructura del Programa (El Control)
+
+Aquí es donde el código cobra vida y toma decisiones.
+
+    3.1 La Pila (The Stack): Conceptos de PUSH (meter) y POP (sacar). Es el "almacén temporal" del CPU.
+    3.2 Control de Flujo: Cómo el CPU hace "IFs" y "Loops" usando comparaciones (CMP) y saltos (JMP, BEQ, BNE).
+    3.3 Funciones a Bajo Nivel: Entender qué pasa realmente cuando llamas a una función (CALL) y regresas (RET).
+
+🔵 Fase 4: El Entorno (Linux y C)
+
+Para que tus ataques y programas funcionen en tu Kali.
+
+    4.1 Introducción a C: Ver cómo un lenguaje "humano" se traduce casi directamente a instrucciones de CPU.
+    4.2 Llamadas al Sistema (Syscalls): Cómo pedirle permiso al Kernel para escribir en pantalla o cerrar un programa.
+    4.3 Interacción con el S.O.: Entender cómo Linux carga tu programa en la RAM.
+    
+    

@@ -1,0 +1,670 @@
+https://cpulator.01xz.net/?sys=arm-de1soc
+
+🟢 Fase 1: Los Cimientos (El Hardware)
+
+    1.1 La Memoria RAM: Entenderla como un edificio lleno de casilleros numerados (Direcciones).
+    1.2 La CPU y sus "Manos": Qué son los Registros y por qué el CPU no puede hacer nada sin ellos.
+    1.3 El Ciclo de Vida del Código: El proceso de Fetch → Decode → Execute (Buscar, Entender, Hacer).
+
+🟪️ 1.1 La Memoria RAM
+
+🔶️ La RAM: El concepto del "Casillero"
+
+Imagina la memoria RAM como un hotel infinito con pasillos llenos de habitaciones. Cada habitación tiene dos características vitales:
+
+    1️⃣️ La Dirección (Address): Es el número de la puerta (ej. 0x0001, 0x0002). Es única y nunca cambia.
+    2️⃣️ El Contenido (Value): Es lo que vive dentro de la habitación (un número, una letra, una instrucción). Esto sí puede cambiar (es volátil).
+
+🔶️ ¿Cómo se organiza el "Hotel"? (Celdas de 8 bits)
+
+En la arquitectura moderna, cada "habitación" (celda) de la RAM tiene un tamaño estándar: 1 Byte (8 bits).
+
+    ☑️ Si quieres guardar un número pequeño (del 0 al 255), cabe en una habitación.
+    ☑️ Si quieres guardar algo más grande (como una frase o un número gigante), el CPU usa varias habitaciones seguidas.
+
+🔶️ Segmentación: Las "Zonas" del Hotel
+
+Cuando abres un programa en tu Kali Linux, el Sistema Operativo no tira los datos en cualquier lado. Divide la RAM asignada a ese proceso en secciones:
+
+Sección			 	¿Qué hay ahí?  		 		Analogía
+--------------------------------------------------------------------------------
+Código (Text)	 	Las instrucciones de    	El manual de instrucciones del 
+				 	Assembler (MOV, ADD). 		hotel.
+				 	Es de "Solo lectura"
+--------------------------------------------------------------------------------				
+Datos (Data/BSS) 	Tus variables globales      Los muebles fijos de la recepción.
+				    (ej. usuario = "alboncho")	
+--------------------------------------------------------------------------------				
+Stack (Pila)	    Datos temporales y  		La bandeja de entrada de papeles.
+					funciones. Crece y decrece 
+					rápido.	
+--------------------------------------------------------------------------------					
+Heap (Montículo)	Memoria que pides 			Un almacén que alquilas por horas.
+					dinámicamente 
+					(como con malloc en C++).	
+					
+ 
+🔶️ El Rol del CPU con la RAM
+
+El CPU es muy rápido, pero tiene "mala memoria". Por eso:
+
+    1️⃣️ LDR (Load): El CPU va a la RAM, saca un dato de una dirección y lo trae a sus "manos" (Registros).
+    2️⃣️ STR (Store): El CPU termina de hacer un cálculo y manda el resultado de vuelta a una dirección de la RAM para que no se pierda.
+
+💡 Tip de "Sombrero Rojo":
+
+En hacking, cuando escuchas sobre un "Memory Dump" (volcado de memoria), es simplemente alguien sacando una foto a todas las habitaciones del hotel para ver qué secretos (como contraseñas) hay guardados en el contenido de las celdas en ese momento.
+
+🔶️ Tu primer experimento mental:
+
+Si yo te digo: "Alboncho, ve a la dirección 0x0040 y dime qué hay", y tú me respondes "Hay un 0x05":
+
+    0x0040 es la Dirección.
+    0x05 es el Valor.
+
+🟪️ 1.2 La CPU y sus "Manos"
+
+¡Excelente! Si la RAM era el "Gran Hotel" (el almacén masivo), los Registros son el escritorio del trabajador. El CPU es increíblemente rápido, pero es "brazo corto": no puede hacer una suma directamente en la habitación del hotel, tiene que traer los datos a su escritorio primero.
+
+Para tu Biblia Linux, aquí tienes la esencia de los registros:
+
+🔶️ Los Registros: Las "Manos" del CPU
+
+Los registros son pequeñas celdas de memoria dentro del propio procesador. Son la memoria más rápida que existe en todo el universo de tu PC.
+
+¿Por qué existen? (La Regla de Oro)
+
+El procesador tiene una regla estricta: Solo puedo operar con lo que tengo en mis manos.
+
+    ☑️ Si quieres sumar 5+5, primero pones un 5 en la mano derecha (Registro A) y el otro 5 en la mano izquierda (Registro B). Luego los chocas en la ALU (el músculo matemático) y el resultado queda en una de tus manos.
+
+🔶️ Tipos de Registros (En ARM, lo que ves en CPulator)
+
+En la arquitectura ARM (que es la que estamos usando en el simulador), los registros son muy ordenados. Se llaman simplemente R0, R1, R2... hasta R15.
+
+Registro        Categoría			Función "Sombrero Rojo"
+-----------------------------------------------------------------
+R0 - R12		Propósito General	Son tus variables temporales. 
+									Aquí guardas números, letras o
+									direcciones que estés usando 
+									ahora mismo.
+------------------------------------------------------------------
+R13 (SP)		Stack Pointer		Es el "Puntero de la Pila". 
+									Indica en qué parte del almacén 
+									temporal estamos dejando los papeles.
+------------------------------------------------------------------
+R14 (LR)		Link Register		Guarda la "migaja de pan" para saber
+									a dónde volver después de entrar 
+									en una función (como un return en C++).
+------------------------------------------------------------------
+R15 (PC)		Program Counter		EL MÁS IMPORTANTE. Es el dedo que 
+									señala qué línea de código se está 
+									leyendo. Si lo hackeas, controlas el programa.
+
+🔶️ Los Registros "Fantasma": Las Flags (Banderas)
+
+Hay un registro especial que no guarda números para sumar, sino que guarda estados. Se llama CPSR (Current Program Status Register). Imagínalo como el tablero de un auto con luces de advertencia:
+
+    ☑️ Z (Zero): Se enciende si el resultado de tu última operación fue 0. (Clave para saber si una contraseña es correcta).
+    ☑️ N (Negative): Se enciende si el resultado fue un número negativo.
+    ☑️ C (Carry): Se enciende si hubo un "acarreo" (como cuando sumas 9+1 y te "llevas una" en la escuela).
+    ☑️ V (Overflow): Se enciende si el número fue tan grande que "rompió" el registro.
+
+💡 Dato:
+
+En x86 (Intel/AMD), los registros tienen nombres raros como EAX, EBX, ESP. En ARM es mucho más lógico (R0, R1, R2). Pero la función es la misma: son espacios de almacenamiento volátil de 32 o 64 bits de ancho.
+
+⚔️ El Duelo de Arquitecturas: x86 (Tu PC) vs. ARM (Celulares)
+
+Característica		x86 / x86_64 (Intel / AMD)			ARM (Apple M1/M2, 
+														Raspberry Pi, Móviles)
+------------------------------------------------------------------------------------------
+Filosofía			CISC (Instrucciones complejas). 	RISC (Instrucciones reducidas).
+					Una orden hace muchas cosas.		Órdenes simples que van volando. 
+------------------------------------------------------------------------------------------
+Uso común			Laptops potentes, PCs de 			Celulares, Relojes inteligentes, 
+					escritorio, Servidores.				Tablets, IoT.
+------------------------------------------------------------------------------------------
+Registros			Pocos y con nombres "históricos"	Muchos y muy ordenados 
+					(EAX, EBX, RSP).					(R0, R1, R2... hasta R15). 
+------------------------------------------------------------------------------------------
+Consumo				Traga mucha energía (por eso tu		Ultra eficiente (por eso la 
+					PC necesita ventiladores).			batería del celular dura todo el día). 
+------------------------------------------------------------------------------------------
+Linux				Es el rey. Casi todo el software	Cada vez más fuerte. Kali tiene
+					de Kali nace aquí.					 una versión especial para ARM. 
+					
+🔶️ Los Registros en tu Linux (x86_64)
+
+Como eres un Sombrero Rojo, cuando hagas ingeniería inversa con herramientas como gdb o edb en tu Kali, no verás R0, verás estos nombres. Apúntalos porque son los mismos "muebles" pero con otros nombres:
+
+    ☑️ RAX (Acumulador): Es el R0 de Intel. Se usa para resultados de sumas y valores de retorno.
+    ☑️ RSP (Stack Pointer): El que apunta a la "Pila" (Stack).
+    ☑️ RIP (Instruction Pointer): Es el famosísimo PC (Program Counter). Si logras que este registro apunte a tu código malicioso, ¡has hackeado el programa!
+
+🔶️ ¿Por qué te estoy enseñando ARM en el simulador si tu PC es x86?
+
+    1️⃣️ Es más educativo: Aprender Assembler en x86 es como aprender a manejar con un tráiler de 18 ruedas; es frustrante. ARM es como un auto deportivo: todo es lógico, limpio y simétrico.
+    2️⃣️ El futuro es ARM: Apple ya se pasó a ARM, y Windows/Linux están yendo hacia allá.
+    3️⃣️ Hacking de Móviles: Si quieres auditar Apps de Android o dispositivos "Smart", tienes que saber ARM.
+
+🔶️ El detalle de los 4 bytes (Por qué el PC salta así)
+
+Me preguntaste por qué el registro PC (R15) saltaba de 4 en 4 en el simulador.
+En ARM, todas las instrucciones miden exactamente 32 bits (4 bytes). Es como si todas las baldosas de un pasillo midieran exactamente 1 metro. Para llegar a la siguiente baldosa, siempre tienes que avanzar 1 metro exacto.
+
+En x86 (Intel), las instrucciones pueden medir 1 byte, 3 bytes o 15 bytes... ¡es un caos! Por eso ARM es perfecto para empezar.
+
+🟪️ 1.3 El Ciclo de Vida del Código: El proceso de Fetch → Decode → Execute (Buscar, Entender, Hacer)
+
+Imagina que el CPU es un chef y la RAM es el libro de recetas. El chef no lee toda la página de un golpe; hace un baile repetitivo de tres pasos para cada una de las líneas de código. A este baile se le llama Fetch, Decode, Execute.
+
+Para tu Biblia Linux, aquí tienes el desglose de lo que pasa miles de millones de veces por segundo en tu Ryzen 7:
+
+🔶️ El Ciclo de Vida: Fetch → Decode → Execute
+
+Este ciclo es la "respiración" de la computadora. Si se detiene, la PC se congela.
+
+1️⃣️ FETCH (Traer)
+
+El CPU mira su registro PC (Program Counter), que tiene la dirección de la siguiente instrucción. Va a la RAM, busca esa dirección y "copia" la instrucción (los unos y ceros) hacia adentro del procesador.
+
+    En el simulador: Es cuando la flecha amarilla se posa sobre una línea.
+
+2️⃣️ DECODE (Decodificar)
+
+El CPU tiene una unidad de control que es como un traductor. Mira esos bits y dice: "Ah, estos bits significan que debo SUMAR el Registro 0 con el Registro 1". Separa la operación (qué hacer) de los operandos (con qué hacerlo).
+
+3️⃣️ EXECUTE (Ejecutar)
+
+Aquí entra en juego la ALU (Unidad Aritmético Lógica). Se abren las compuertas lógicas, la electricidad fluye y se realiza la operación real (la suma, la resta, el salto, etc.). El resultado se guarda en un registro.
+
+🔄 El paso invisible: "Update PC"
+
+Justo después de hacer el Fetch, el CPU automáticamente le suma 4 al PC.
+
+    - ¿Recuerdas que te dije que en ARM las instrucciones miden 4 bytes?
+    - El CPU es precavido: antes de ejecutar la instrucción actual, ya dejó su "dedo" (el PC) apuntando a la siguiente para no perder tiempo.
+
+🔶️ ¿Por qué esto es VITAL para un "Sombrero Rojo"?
+
+En ciberseguridad, existe un ataque llamado Buffer Overflow. El objetivo de este ataque es "ensuciar" la memoria RAM de tal forma que, cuando el CPU haga el Fetch, en lugar de traer la instrucción legal del programa, traiga una dirección que tú pusiste ahí.
+
+Si logras cambiar lo que el CPU "Fetch-ea", tú eres el dueño de la máquina.
+
+🔶️ Resumen para tu examen en la UMSA:
+
+    Fetch: Saca la instrucción de la RAM.
+    Decode: El traductor interno entiende la orden.
+    Execute: La ALU hace el cálculo.
+
+
+🟡 Fase 2: El Idioma de la Máquina (Lógica y Números)
+
+Aquí es donde dejamos de pensar en base 10 (decimal).
+
+    2.1 Sistemas de Numeración: Dominar el Binario (0-1) y el Hexadecimal (0-F).
+    2.2 Operaciones Bit a Bit (Bitwise): Los operadores lógicos AND, OR, XOR, NOT y los desplazamientos (Shifts).
+    2.3 Punteros y Direccionamiento: Entender la diferencia crítica entre el valor (el dato) y la dirección (dónde vive el dato).
+
+🟪️ 2.1 Sistema de Numeracion
+
+🔶️ ¿Por qué usamos Hexadecimal (Base 16)?
+
+En la UMSA te dirán que la computadora solo entiende binario (ceros y unos). Eso es verdad, pero leer 1010101111001101 es imposible para un humano. Aquí entra el Hexadecimal como el traductor perfecto.
+
+✏️ La Razón Técnica:
+Como 2^4=16, un solo dígito hexadecimal resume exactamente 4 bits.
+
+    ☑️ 2 dígitos Hex = 8 bits = 1 Byte.
+    ☑️ Por eso, cuando ves 0xFF, sabes al instante que es un Byte completo lleno de unos (1111 1111).
+
+🔶️ La Anatomía del Número Hex
+
+En tu "Biblia Linux" y en el simulador, verás que los números llevan un prefijo: 0x.
+
+    ☑️ El 0x le dice al ensamblador: "Oye, lo que sigue no es el número ciento diez, es un valor hexadecimal".
+    ☑️ 0x110 en decimal es 272. ¡Gran diferencia!
+
+La escala del 0 al F:
+
+Dec	0	1	...	9	10	11	12	13	14	15
+-------------------------------------------
+Hex	0	1	...	9	A	B	C	D	E	F
+
+🔶️ El Truco del "Ojo de Halcón" (Lectura de Memoria)
+
+Cuando estés analizando un binario en Kali, acostumbra tu vista a estas equivalencias rápidas:
+
+    ☑️ Cero es Cero: 0x00 → Todo apagado.
+    ☑️ Mitad de camino: 0x0F → Los 4 bits de la derecha encendidos (0000 1111).
+    ☑️ El Techo: 0xFF → Los 8 bits (el byte) encendidos (1111 1111).
+    ☑️ Poder de 2: 0x01, 0x02, 0x04, 0x08 (Solo un bit encendido en cada caso).
+
+🔶️ ¿Por qué esto es clave para el Hacking?
+
+Imagina que estás analizando el tráfico de red con Bettercap. Ves que un paquete envía el valor 0x41.
+
+    - Si buscas en la tabla ASCII, 0x41 es la letra 'A'.
+    - Si ves 0x90, es la instrucción NOP (No Operation) en x86, que usamos para hacer "toboganes" en los exploits.
+
+💡 Reto de Fase 2.1:
+
+Si en tu simulador ves que el registro R0 tiene el valor 0x12, y le sumas 0x01:
+
+    ¿Cuál es el resultado en Hex?
+    ¿Cómo se vería ese resultado final en binario usando la regla 8-4-2-1?
+    
+🟪️ 2.2 Operaciones Bit a Bit (Bitwise Operations)
+
+🔶️ Operaciones Bit a Bit: El Lenguaje Natural del Silicio
+
+En Assembler, las operaciones bit a bit comparan dos números bit por bit (en la misma posición) para generar un resultado. Aquí están las "Cuatro Reinas" que debes anotar en tu Biblia Linux:
+
+✏️ AND (& en C++, AND en ASM)
+
+Regla: Solo da 1 si AMBOS son 1.
+
+    ☑️ Sirve para MASCARAR (limpiar bits). Si quieres apagar todos los bits excepto uno, usas AND.
+
+✏️ OR (| en C++, ORR en ASM)
+
+Regla: Da 1 si AL MENOS UNO es 1.
+
+    ☑️ Sirve para ENCENDER bits específicos sin tocar los demás.
+
+✏️ XOR (^ en C++, EOR en ASM)
+
+Regla: Da 1 si son DIFERENTES. (1 y 0 = 1 | 1 y 1 = 0).
+
+    ☑️ El truco del Hacker: Si haces XOR de un registro con sigo mismo (EOR R0, R0, R0), el resultado siempre es 0. Es la forma más rápida y elegante de limpiar un registro en Assembler.
+
+✏️ NOT (~ en C++, MVN en ASM)
+
+Regla: Invierte todo. El 0 se vuelve 1 y el 1 se vuelve 0.
+
+💡 Los Desplazamientos (Shifts): Multiplicar por 2 sin usar la ALU de multiplicar
+
+Esto te va a encantar para tu optimización de código:
+
+    ✅️ LSL (Logical Shift Left): Mueve los bits a la izquierda.
+
+        0001 (1) → Desplazo a la izquierda → 0010 (2).
+        Efecto: Cada salto a la izquierda multiplica por 2.
+
+    ✅️ LSR (Logical Shift Right): Mueve los bits a la derecha.
+
+        Efecto: Cada salto a la derecha divide entre 2 (eliminando decimales).
+
+🔶️ Ejemplo Real en CPulator (Manejando LEDs)
+
+Imagina que en el simulador quieres encender solo el LED 0 y el LED 4 de la placa.
+
+    ☑️ El LED 0 es el bit 0001 (2^0=1).
+    ☑️ El LED 4 es el bit 10000 (2^4=16 en decimal, que es 0x10 en Hex).
+    ☑️ Haces un OR: 0x01 OR 0x10 = 0x11.
+
+Si mandas 0x11 al puerto de los LEDs, ¡pum! Se encienden exactamente esos dos.
+
+🛡️ Aplicación en Hacking: ¿Por qué importa el XOR?
+
+Muchos virus antiguos (y algunos modernos) usan XOR para "encriptar" sus archivos. Si aplicas XOR con la misma "llave" dos veces, el dato original regresa. Es un cifrado simétrico súper básico pero ultra rápido.
+
+🟪️ 2.3 Punteros y Direcciones
+
+🔶️ Punteros: Valor vs. Dirección
+
+Este es el concepto más importante para entender los exploits (como el buffer overflow).
+
+Imagina que tienes una caja fuerte:
+
+    ☑️ El Valor: Es lo que hay dentro de la caja (ej. 100 dólares).
+    ☑️ La Dirección (Puntero): Es la ubicación de la caja fuerte (ej. "Pasillo 4, Casillero 20").
+
+En Assembler, un registro como R0 puede tener cualquiera de las dos cosas:
+
+    ☑️ Puede tener el número 5.
+    ☑️ O puede tener la dirección 0x2000, que es donde está guardado el 5.
+
+🔶️ ¿Cómo lo vemos en el código? (Sintaxis de Corchetes)
+
+En ARM (y en casi todos los Assemblers), los corchetes [] significan: "No uses este número, ve a la dirección que indica este número".
+
+------------------------------------------------------------------------------------
+	Fragmento de código
+
+	MOV R0, #0x2000  ; R0 ahora tiene la DIRECCIÓN 0x2000
+	LDR R1, [R0]     ; "Load": Ve a la dirección que dice R0 y trae lo que haya ahí a R1
+------------------------------------------------------------------------------------
+
+    - Si en la RAM, en la posición 0x2000, hay un 99...
+    - Después de ese LDR, R1 valdrá 99.
+
+🔶️ Los 3 Modos de Direccionamiento (Para tu Biblia Linux)
+
+Para que el CPU sepa de dónde sacar los datos, existen tres formas básicas:
+
+    1️⃣️ Inmediato: El valor está ahí mismo.
+        - MOV R0, #10 (R0 = 10).
+
+    2️⃣️ Directo (Registro): El valor está en otro registro.
+        - MOV R0, R1 (Copia lo de R1 a R0).
+
+    3️⃣️ Indirecto (Puntero): El valor está en la RAM, y el registro nos dice en qué parte.
+        - LDR R0, [R1] (Busca en la dirección que marca R1).
+
+🛡️ ¿Por qué esto es Hacking Puro?
+
+Cuando un programa tiene una vulnerabilidad, el atacante intenta cambiar el valor de un puntero.
+
+    - Si el programa espera leer la configuración de usuario en 0x1000.
+    - Y tú logras cambiar ese puntero para que apunte a 0x5000 (donde tú escribiste código malicioso)...
+    - ¡El CPU ejecutará tu código creyendo que es la configuración!
+
+💡 Reto de Lógica de Punteros:
+
+Mira este código "mañoso":
+
+    MOV R0, #0x10
+    MOV R1, R0
+    LDR R2, [R0]
+
+Pregunta: ¿Cuál es la diferencia entre lo que tiene R1 y lo que tiene R2?
+(Pista: R1 copió el número, R2 fue a "buscar" a la habitación número 16 de la RAM).
+
+¿Ves la diferencia? Si esto está claro, habremos terminado la Fase 2. ¡Solo nos falta la Fase 3: La Pila (Stack) y el Control de Flujo para que empieces a hacer programas reales! ¿Le damos?
+
+
+🔴 Fase 3: La Estructura del Programa (El Control)
+
+Aquí es donde el código cobra vida y toma decisiones.
+
+    3.1 La Pila (The Stack): Conceptos de PUSH (meter) y POP (sacar). Es el "almacén temporal" del CPU.
+    3.2 Control de Flujo: Cómo el CPU hace "IFs" y "Loops" usando comparaciones (CMP) y saltos (JMP, BEQ, BNE).
+    3.3 Funciones a Bajo Nivel: Entender qué pasa realmente cuando llamas a una función (CALL) y regresas (RET).
+
+🟪️ 3.1 La Pila (The Stack)
+
+🔶️ La Pila (The Stack): El Almacén Vertical
+
+En tu Biblia Linux, define la Pila como una pila de platos. Solo puedes interactuar con el plato que está hasta arriba. Es una estructura de tipo LIFO (Last In, First Out): el último que entra es el primero que sale.
+
+✏️ ¿Para qué sirve?
+
+El CPU tiene pocos registros (pocos brazos). Si necesita hacer un cálculo nuevo pero sus manos están llenas, "apila" lo que tiene en la RAM temporalmente, hace el cálculo, y luego lo recupera.
+
+🔶️ Las dos órdenes sagradas: PUSH y POP
+
+    1️⃣️ PUSH (Meter): Pones un dato en la cima de la pila. El "Puntero de Pila" (SP o R13) se mueve hacia abajo para hacer espacio.
+        - PUSH {R0} → Guarda el valor de R0 en la pila.
+
+    2️⃣️ POP (Sacar): Quitas el dato de la cima y lo devuelves a un registro. El SP sube de nuevo.
+        - POP {R0} → Recupera el valor y lo mete en R0.
+
+🔶️ El "Puntero de Pila" (SP / R13)
+
+Como viste en el simulador, el registro SP tiene una dirección de memoria muy alta (ej. 0x7FFFFFF0).
+
+    📌️ Dato curioso de arquitectura: La pila crece "hacia abajo" (hacia direcciones de memoria menores). Es como si construyeras un edificio hacia el sótano.
+
+🛡️ El Concepto de Oro: Stack Overflow (Desbordamiento)
+
+Como futuro Red Hat, esto te interesa: La pila tiene un tamaño limitado. Si un programa mete demasiados datos sin sacarlos, la pila choca con otras secciones de la memoria (como tus variables o tu código).
+
+Si logras "desbordar" la pila con un PUSH mal intencionado, puedes sobrescribir la dirección de retorno de una función. Así es como se desvía el flujo de un programa para ejecutar un exploit.
+
+💡 Reto de Lógica de la Pila:
+
+Imagina este orden de ejecución:
+
+    MOV R0, #100
+    MOV R1, #200
+    PUSH {R0}
+    PUSH {R1}
+    POP {R0}
+
+Pregunta: Después del POP, ¿qué valor tiene R0?
+(Pista: Recuerda que es una pila de platos. ¿Cuál fue el último que pusiste encima?).
+    
+🟪️ 3.2 Control de Flujo (Saltos y Comparaciones)
+
+🔶️ Control de Flujo: El Arte de Saltar
+
+En Assembler, el CPU solo sabe hacer una cosa: ejecutar la línea que sigue. Para romper esa regla, tenemos que "saltar" (cambiar el valor del registro PC).
+
+1️⃣️ La Comparación: CMP (Compare)
+
+Antes de saltar, hay que preguntar algo. La instrucción CMP resta dos números, pero no guarda el resultado, solo activa las Flags (banderas) de las que hablamos en la Fase 1.2.
+
+    - Si 10−10=0, se activa la bandera Z (Zero).
+    - Si 5−10=−5, se activa la bandera N (Negative).
+
+2️⃣️ Los Saltos Condicionales (Branches)
+
+Después del CMP, usas una instrucción de salto que "mira" esas banderas:
+
+Instrucción		Significado				Condición (Flag)
+---------------------------------------------------------------------------
+B				Branch					Salto incondicional (siempre salta).
+BEQ				Branch if Equal			Salta si son iguales (Z=1).
+BNE				Branch if Not Equal		Salta si NO son iguales (Z=0).
+BGT				Branch if Greater Than	Salta si es mayor.
+BLT				Branch if Less Than		Salta si es menor.
+
+🔄 Estructura de un "IF" en Assembler
+
+Mira cómo se traduce un simple if (R0 == 100) a lenguaje de máquina:
+
+Fragmento de código -----------------------------------------------------
+	CMP R0, #100      ; ¿R0 es igual a 100?
+	BNE no_es_igual   ; "Si NO son iguales, salta a la etiqueta 'no_es_igual'"
+
+	; --- Aquí va el código si SÍ son iguales ---
+	MOV R1, #1        ; Acceso concedido
+	B fin             ; Salta al final para no ejecutar el 'else'
+
+	no_es_igual:      ; Esta es la etiqueta (el 'else')
+	MOV R1, #0        ; Acceso denegado
+
+	fin:
+    ; El programa sigue aquí...
+--------------------------------------------------------------------------
+
+🛡️ El Salto del "Sombrero Rojo" (Bypassing)
+
+¿Sabes cómo se "crackea" un programa que pide contraseña?
+El programa original hace algo como: CMP contraseña_ingresada, contraseña_real. Si son iguales, salta a la zona de "Bienvenido".
+
+    - El hacker cambia la instrucción BEQ (Saltar si es igual) por un BNE (Saltar si NO es igual) o por un B (Saltar siempre).
+    - ¡Listo! Entras al sistema poniendo cualquier basura como contraseña.
+
+💡 Reto de Lógica de Flujo:
+
+Tienes este código:
+
+    MOV R0, #5
+    CMP R0, #10
+    BGT etiqueta_A
+    MOV R1, #1
+    B fin
+    etiqueta_A:
+    MOV R1, #2
+    fin:
+
+Pregunta: ¿Qué valor termina teniendo R1?
+(Pista: ¿5 es mayor que 10?
+
+🟪️ 3.3 Funciones (CALL y REST)
+
+En C++ haces miFuncion(), pero en Assembler no hay "magia". El CPU tiene que dejar una migaja de pan para saber cómo volver a donde estaba.
+
+🔶️ Funciones: El Arte de Ir y Volver
+
+Para que una función funcione, necesitamos dos cosas:
+
+    1️⃣️ Saltar al código de la función.
+    2️⃣️ Recordar de dónde venimos para regresar cuando termine.
+
+✏️ El Registro Link (LR / R14)
+
+Este es el "GPS" de retorno. Cuando llamas a una función, el CPU guarda la dirección de la siguiente línea en el LR.
+
+🔶️ Las instrucciones de "Misión": BL y BX
+
+En ARM, no usamos solo B (salto a secas), usamos estas dos:
+
+    ✅️ BL (Branch with Link): Es el "Llamar a función".
+
+        ☑️ Hace dos cosas: Copia la dirección actual en el LR y salta a la etiqueta.
+        ☑️ BL calcular_suma
+
+    ✅️ BX (Branch and Exchange): Es el "Regresar" (el return de C++).
+
+        ☑️ Le dice al CPU: "Mira lo que hay en el registro LR y salta de vuelta a esa dirección".
+        ☑️ BX LR
+
+🧱 El "Prólogo" y "Epílogo" (Usando la Pila)
+
+¿Qué pasa si tu función también necesita usar registros? ¡Podría borrar lo que el programa principal estaba haciendo! Por eso usamos la Pila (Fase 3.1) para proteger los datos:
+
+Fragmento de código -------------------------------------------------------------------------
+
+mi_funcion:
+    PUSH {R4, LR}    ; 1. GUARDAR: Metemos R4 y el retorno a la pila
+    
+    ; ... aquí haces tus cálculos usando R4 ...
+    MOV R4, #50
+    
+    POP {R4, PC}     ; 2. RECUPERAR: Sacamos R4 y lo que era el LR lo metemos directo al PC
+                     ; ¡Esto hace el salto de regreso automáticamente!
+---------------------------------------------------------------------------------------------
+
+🛡️ ¿Por qué esto es Hacking de Élite? (ROP)
+
+En ciberseguridad, existe una técnica llamada ROP (Return Oriented Programming).
+Si un hacker logra desbordar la pila (Stack Overflow) y cambia el valor del LR o la dirección de retorno que guardaste con PUSH, puede obligar al programa a saltar a "pedazos" de código (gadgets) que ya existen en el sistema para ejecutar comandos de administrador.
+
+Tú controlas el retorno, tú controlas el sistema.
+
+💡 Reto Final de la Fase 3:
+
+Si ejecutas BL mi_funcion y la instrucción está en la dirección 0x0008:
+
+    ¿Qué dirección se guardará en el registro LR?
+    (Pista: Recuerda que las instrucciones miden 4 bytes y queremos volver a la que SIGUE a la llamada).
+
+
+🔵 Fase 4: El Entorno (Linux y C)
+
+Para que tus ataques y programas funcionen en tu Kali.
+
+    4.1 Introducción a C: Ver cómo un lenguaje "humano" se traduce casi directamente a instrucciones de CPU.
+    4.2 Llamadas al Sistema (Syscalls): Cómo pedirle permiso al Kernel para escribir en pantalla o cerrar un programa.
+    4.3 Interacción con el S.O.: Entender cómo Linux carga tu programa en la RAM.
+    
+    
+🟪️ 4.1 Introduccion a C
+
+🔶️ De C/C++ a Assembler: El Puente de Plata
+
+C y C++ son lenguajes de "Alto Nivel", pero nacieron para estar pegados al hardware. Por eso, cada instrucción que escribes tiene una traducción casi directa a lo que ya aprendiste.
+
+✏️ ¿Cómo se traduce el código?
+
+Mira esta comparativa de una suma simple:
+
+En C / C++	En Assembler (ARM)	Explicación
+--------------------------------------------------------------
+int a=5;	MOV R0, #5			Carga el valor en un registro.
+--------------------------------------------------------------
+int b=10;	MOV R1, #10			Carga el segundo valor.
+--------------------------------------------------------------
+int c=a+b;	ADD R2, R0, R1		La ALU hace su magia.
+
+🔶️C++: El "Assembler con Esteroides"
+
+En C++, cuando creas un Objeto o una Clase, el compilador hace algo increíble:
+
+    1️⃣️ Reserva un bloque en la RAM (Fase 1.1).
+    2️⃣️ Usa un Puntero (Fase 2.3) llamado this que apunta al inicio de ese bloque.
+	3️⃣️ Cada vez que llamas a un método, el CPU hace un BL (Fase 3.3) a la dirección de esa función.
+
+🛡️ El Laboratorio del Hacker: gcc -S
+
+Como usas Kali Linux, tienes la herramienta más poderosa para aprender esto. Puedes obligar a tu computadora a que te muestre el Assembler de cualquier programa que escribas en C++.
+
+    ☑️ Crea un archivo: nano hola.cpp
+    ☑️ Escribe algo simple (una suma).
+    3️⃣️ Corre este comando en tu terminal:
+    
+    Bash
+	-----------------------------
+    g++ -S -fverbose-asm hola.cpp
+
+    ☑️ ¡Aparecerá un archivo hola.s! Ábrelo y verás exactamente las instrucciones PUSH, POP, MOV y ADD que el compilador generó para tu Ryzen 7.
+
+🔶️ ¿Por qué C/C++ es vital para un Red Hat?
+
+La mayoría de los Exploits y Malware se escriben en C. ¿Por qué?
+
+    ☑️ Porque te permite manejar la Memoria RAM directamente (usando punteros).
+    ☑️ Porque puedes meter pedazos de Assembler dentro del código C (Inline Assembly).
+    ☑️ Porque no necesita una "máquina virtual" pesada para correr; es código puro golpeando el silicio.
+
+💡 Tu último reto conceptual:
+
+Si en C++ escribes int *p = &x; (un puntero), ¿qué crees que está haciendo el CPU en el fondo?
+
+    ¿Copiando el valor de x?
+    ¿Copiando la dirección de memoria donde vive x en un registro?
+
+🟪️ 4.2 Llamadas al Sistema (Syscalls)
+
+🔶️ Syscalls: Hablando con el Kernel
+
+Imagina que tu programa es un ciudadano y el Kernel (el corazón de Linux) es el Rey.
+
+    ☑️ Tu programa vive en una "burbuja" (User Mode) donde no tiene permiso para tocar el disco duro, ni la pantalla, ni la red.
+    ☑️ Si quieres escribir "Hola" en la terminal, tienes que pedirle permiso al Rey. Ese permiso es una Syscall.
+
+🔶️ ¿Cómo se hace una Syscall en Assembler?
+
+En ARM y x86, no llamas a una función normal. Sigues un protocolo de "mensajería":
+
+    1️⃣️ El Número de Pedido: Pones en un registro específico (en ARM es el R7) el número de lo que quieres hacer.
+
+        - Ejemplo: El número 4 es "Escribir" (write).
+        - Ejemplo: El número 1 es "Salir" (exit).
+
+    2️⃣️ Los Detalles: Pones en los otros registros (R0, R1, R2) qué quieres escribir y dónde.
+
+    3️⃣️ El Grito de Guerra: Ejecutas la instrucción SVC 0 (SuperVisor Call) o SWI (SoftWare Interrupt).
+
+En ese momento, el CPU pausa tu programa, salta al Kernel, el Kernel hace el trabajo sucio, y luego te devuelve el control.
+
+✏️ Ejemplo de "Hola Mundo" Real (Sin cout, sin printf)
+
+Así se vería en tu Kali si quisieras cerrar un programa limpiamente usando solo Assembler:
+
+Fragmento de código
+---------------------------------------------------------
+MOV R0, #0      ; R0 = 0 (Código de salida "todo bien")
+MOV R7, #1      ; R7 = 1 (Número de la Syscall 'exit')
+SVC 0           ; ¡Hey Kernel! Ejecuta el pedido número 1.
+
+🛡️ ¿Por qué esto es Hacking de Verdad? (Shellcode)
+
+Cuando escuchas que alguien inyectó un "Shellcode", se refieren a un pedacito de Assembler que no usa librerías de C++.
+
+    - El Shellcode usa Syscalls directamente para abrir una terminal (/bin/sh) o para conectar tu PC a la IP del hacker.
+    - Como el Shellcode no depende de archivos externos, puede "flotar" en la memoria RAM y ejecutarse silenciosamente.
+
+💡 El Último Concepto: 4.3 Interacción con el S.O.
+
+Cuando tú le das doble clic a un programa o lo corres con ./programa en Kali:
+
+    1️⃣️ El S.O. lee el archivo (formato ELF en Linux).
+    2️⃣️ Reserva espacio en la RAM (Fase 1.1).
+    3️⃣️ Copia el código ahí.
+    4️⃣️ Pone el registro PC (R15) apuntando a la primera línea de tu código.
+    5️⃣️ ¡Y empieza el baile del Fetch-Decode-Execute!
