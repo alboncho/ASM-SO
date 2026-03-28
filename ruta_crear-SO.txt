@@ -1,3 +1,5 @@
+https://www.qemu.org/
+
 🧩 Lo que te falta (lo REALMENTE importante)
 
 Para hacer un OS tipo “albonchoOS”, necesitas dominar esto:
