@@ -1,0 +1,350 @@
+1. 🧱 Bootloader (el inicio de todo)
+	BIOS/UEFI
+	Sector de arranque (512 bytes)
+	Modo real (16 bits)
+
+🟪 Bootloader: El primer eslabón
+
+🔶 Bootloader
+
+El Bootloader (Gestor de arranque) es el primer programa que el CPU ejecuta desde un disco. Su única misión en la vida es preparar el terreno y cargar el Kernel (el sistema operativo real) en la memoria RAM.
+
+    ✔️ ¿Para qué sirve? El Kernel suele ser muy grande para caber en el primer sector del disco, así que el Bootloader actúa como un "puente" que sabe dónde está el resto del sistema y lo trae a la RAM.
+
+    ✔️ Con qué se conecta: Se comunica directamente con la BIOS para leer sectores del disco duro o USB.
+
+🔶 BIOS vs. UEFI: Los anfitriones
+
+Antes de que tu código corra, alguien tiene que despertar al hardware.
+
+    ✔️ BIOS (Legacy): Es el estándar antiguo (años 80). Es simple: busca el primer sector del disco, verifica la firma 0xAA55 y salta a la dirección 0x7C00. TempleOS y la mayoría de los proyectos de aprendizaje usan BIOS porque es mucho más fácil de programar en ASM.
+
+    ✔️ UEFI: Es el estándar moderno. Ya no busca un "sector de arranque" de 512 bytes, sino que busca un archivo ejecutable (.efi) en una partición especial del disco. Es mucho más complejo pero más potente.
+
+🔶 Sector de Arranque (MBR): Los 512 bytes sagrados
+
+Como mencionamos antes, la BIOS solo tiene la capacidad (o la paciencia) de leer los primeros 512 bytes del disco.
+
+    ✔️ Limitación física: En esos 512 bytes tienes que meter tu código de impresión, la lógica para buscar el resto del OS en el disco y la firma 0xAA55.
+
+    ✔️ Dato curioso: Si tu código mide 513 bytes, la BIOS no lo reconocerá como arrancable. Por eso usamos el comando 'times 510-($-$$) db 0' en ASM, para rellenar con ceros lo que sobre y que el archivo pese exactamente lo necesario.
+
+🔶 Modo Real (16 bits): El viaje al pasado
+
+Aquí es donde la mayoría de los estudiantes se confunden. Cuando un procesador moderno (como tu Ryzen 7) arranca en modo BIOS, no arranca como una bestia de 64 bits. Arranca fingiendo ser un procesador Intel 8086 de 1978.
+
+    ✔️ ¿Por qué? Por compatibilidad. Todos los CPUs x86 deben poder ejecutar código antiguo al encenderse.
+
+    ✔️ Limitaciones del Modo Real:
+
+        - Registros de 16 bits: Solo puedes manejar números hasta 65,535 (0xFFFF).
+        - Memoria limitada: Solo puedes acceder a 1 MB de RAM. ¡Incluso si tienes 32 GB instalados, el CPU en Modo Real no "ve" el resto!
+        - Sin protección: No hay segmentación ni paginación. Si cometes un error y escribes en una dirección de memoria donde está la BIOS, la PC se reinicia o se congela.
+
+🔶 ¿Cómo se conectan entre sí?
+
+    - El usuario presiona ON.
+    - La BIOS hace un test del hardware (POST).
+    - La BIOS lee el Sector de Arranque de 512 bytes del disco.
+    - La BIOS confirma la firma 0xAA55 y salta a 0x7C00 en la RAM.
+    - Tu código en Modo Real empieza a ejecutarse.
+
+🔶 Ejemplo
+
+Para que el hardware escriba algo en pantalla en Modo Real (16 bits), no tenemos drivers ni librerías. Usamos las Interrupciones de la BIOS. Imagina que la BIOS es un pequeño "manual de funciones" grabado en la placa base que ya sabe cómo hablarle al monitor y al teclado.
+
+Aquí tienes el código comentado línea por línea. Este es el ADN de un sistema operativo:
+
+El codigo: 'boot.asm'---------------------------------------------------------------
+[bits 16]           ; 1. Le decimos al NASM que genere código de 16 bits (Modo Real)
+[org 0x7c00]        ; 2. El "mapa" de memoria: BIOS nos pondrá en esta dirección
+
+inicio:
+    mov si, mensaje  ; 3. Ponemos la dirección de nuestro texto en el registro SI (Source Index)
+    mov ah, 0x0e     ; 4. "0x0e" es el código de la BIOS para "Escribir carácter en modo teletipo"
+
+imprimir_bucle:
+    lodsb            ; 5. Carga el byte donde apunta SI en el registro AL y avanza SI++
+    cmp al, 0        ; 6. ¿Llegamos al final del texto (el cero que pusimos abajo)?
+    je detenerse     ; 7. Si es cero, saltamos a "detenerse"
+    int 0x10         ; 8. ¡INTERRUPCIÓN! Llamamos a la BIOS para que dibuje lo que hay en AL
+    jmp imprimir_bucle ; 9. Repetimos para la siguiente letra
+
+detenerse:
+    hlt              ; 10. Detiene la ejecución del CPU hasta la próxima interrupción
+    jmp detenerse    ; 11. Bucle de seguridad por si el CPU despierta
+
+mensaje db 'Hola AlbonchoOS!', 0 ; 12. Los datos: nuestra cadena de texto
+
+times 510-($-$$) db 0 ; 13. RELLENO: Asegura que el archivo pese 510 bytes exactamente
+dw 0xAA55             ; 14. FIRMA MÁGICA: Los últimos 2 bytes para que la BIOS arranque
+------------------------------------------------------------------------------------
+
+✏️ Explicacion del codigo
+
+📌 Linea 1: [bits 16]
+
+assembly---------------------------------------------
+[bit 16]
+-----------------------------------------------------
+
+✔️ Le dice al emsamblador NASM: "genera código de 16 bits"
+✔️ El x86 arranca en Modo Real (16 bits, como un intel 8086 antiguo)
+✔️ Mas tarde puede pasar a 32 bits (Modo protegido) o 64 Bits (Long Mode)
+
+📌 Línea 2: [org 0x7c00]
+
+assembly---------------------------------------------
+[org 0x7c00]
+-----------------------------------------------------
+
+✔️ 'ORG' = Origin (origen)
+✔️ Le dice al ensamblador: "Este código va a cargarse en la direccion '0x7c00' de memoria"
+✔️ ¿Por que 0x7c00? La BIOS carga los bootloaders SIEMPRE en esa direccion (tradicion desde los 80's)
+
+📌 Línea 3: inicio:
+
+assembly---------------------------------------------
+inicio:
+-----------------------------------------------------
+
+✔️ Etiqueta (como en ARM). Punto de entrada.
+
+📌 Línea 4: mov si, mensaje
+
+assembly--------------------------------------------
+mov si, mensaje
+----------------------------------------------------
+
+✔️ 'mov' = mover
+✔️ 'si' = Source Index (registro de 16 bits)
+✔️ Guarda la direccion del texto en 'si'
+✔️ En ARM era 'ldr r0, =mensaje'. En x86 es diferente.
+
+
+📌 Línea 5: mov ah, 0x0e
+
+assembly---------------------------------------------
+mov ah, 0x0e
+-----------------------------------------------------
+
+✔️ 'ah' = parte alta del registro 'ax' (16 bits), 'ah' y 'al', pertenecen a este registro 'ax' y cada uno pesa (8 bits)
+✔️ '0x0e' = 14 en decimal. Significa "Usar la 'funcion teletipo' dentro de una interrupcion especifica"
+
+	 mov ah, 0x0e 
+         mov al, 'a' 
+	 int 0x10
+
+	👉 Imprimir letra
+
+	 mov ah, 0x00
+	 int 0x10
+
+	👉 Eso NO imprime, eso cambia el modo de video
+
+	mov ah, 0x02
+	int 0x10
+
+	👉 mueve el cursor
+✔️ Es el código de servicio de la BIOS para "escribir carácter en modo teletipo"
+	- 🔥 ¿Qué hace ese modo?
+
+	- Imprime 1 carácter
+	- Avanza el cursor automáticamente
+	- Si llega al final → baja de línea
+	- Hace scroll si la pantalla se llena
+
+📌 Línea 6: imprimir_bucle:
+
+assembly-----------------------------------------------
+imprimir_bucle:
+-------------------------------------------------------
+
+✔️ Etiqueta para el bucle (como 'imprimi:' en ARM)
+
+📌 Línea 7: lodsb
+
+assembly-----------------------------------------------
+lodsb
+-------------------------------------------------------
+
+✔️ 'lod' = load (cargar)
+✔️ 'sb' = String Byte (byte de cadena)
+✔️ Hace dos cosas en una:
+	- Carga el byte apuntado por 'si' en 'al'
+	- Avanza 'si' al siguiente byte
+✔️ Es como 'ldrb r1, [r0], #1' en ARM
+
+📌 Línea 8: cpm al, 0
+
+assembly-----------------------------------------------
+cmp al, 0
+-------------------------------------------------------
+
+✔️ Compara 'al' (el caracter) con 0 (final de cadena)
+
+📌 Línea 9: je detenerse
+
+assembly-----------------------------------------------
+je detenerse
+-------------------------------------------------------
+
+✔️ 'je' = Jump if Equal (salta si son iguales)
+✔️ Es el 'beq' de ARM
+
+📌 Línea 10: int 0x10
+
+assembly-----------------------------------------------
+int 0x10
+-------------------------------------------------------
+
+✔️ 'int' = Interrupt (interrupcion)
+✔️ '0x10' = interrupcion de video de la BIOS
+✔️ !ESTO ES MUY DIFERENTE A ARM!
+✔️ En ARM usabas 'svc' para llamar el SO
+✔️ En x86 usas 'int' para llamar a la BIOS (o despues de SO)
+✔️ La BIOS mira 'ah=0x0e' y escribe el caracter en al
+
+📌 Línea 11: jmp imprimir_bucle
+
+assembly-----------------------------------------------
+jmp imprimir_bucle
+-------------------------------------------------------
+
+✔️ Salta al inicio del bucle
+✔️ Es el 'b imprimir' de ARM
+
+📌 Línea 12: detenerse:
+
+assembly-----------------------------------------------
+detenerse:
+-------------------------------------------------------
+
+✔️ Etiqueta para cuando termina
+
+📌 Línea 13: hlt
+
+assembly-----------------------------------------------
+hlt
+-------------------------------------------------------
+
+✔️ 'hlt' = Halt (detener)
+✔️ Pausa el CPU hasta la próxima interrupción
+✔️ !En ARM no existe esto directamente!
+
+📌 Línea 14: jmp detenerse
+
+assembly-----------------------------------------------
+jmp detenerse
+-------------------------------------------------------
+
+✔️ Bucle de seguridad
+✔️ Si ocurre una interrupcion y el CPU despierta, vuelve a 'hit'
+
+📌 Línea 15: mensaje db 'Hola albonchoOS', 0
+
+assembly-----------------------------------------------
+mensaje db 'Hola albonchoOS', 0
+-------------------------------------------------------
+
+✔️ 'db' = Define Byte (define bytes)
+✔️ Guarda el texto en el 0 final
+✔️ Es como '.asciz' en ARM
+
+📌 Línea 16: times 510-($-$$) db 0
+
+assembly-----------------------------------------------
+times 510-($-$$) db 0
+-------------------------------------------------------
+
+✔️ '$' = direccion actual
+✔️ '$$' = direccion del inicio de la seccion
+✔️ '$-$$' = bytes ya usados
+✔️ 510 - (bytes usados) = cuántos bytes faltan para llegar a 510
+✔️ times ... db 0 = rellena con ceros
+✔️ ¿Por qué 510? El bootloader debe ocupar EXACTAMENTE 510 bytes (los ultimos 2 son para al firma)
+
+📌 Línea 17: dw 0xAA55
+
+assembly-----------------------------------------------
+dw 0xAA55
+-------------------------------------------------------
+
+✔️ 'dw' = Define Word (define palabra de 2 bytes)
+✔️ 'OXAA55' = firma mágica (en memoria se ve como 0x55 0xAA)
+✔️ La BIOS busca estos dos bytes al final del sector 1
+✔️ Si los encuentra, dice: "Este es un bootloader valido" y lo ejecuta
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
