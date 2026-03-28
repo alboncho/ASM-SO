@@ -330,12 +330,10 @@ En Assembler, un registro como R0 puede tener cualquiera de las dos cosas:
 
 En ARM (y en casi todos los Assemblers), los corchetes [] significan: "No uses este número, ve a la dirección que indica este número".
 
-------------------------------------------------------------------------------------
-	Fragmento de código
-
+Fragmento de código-------------------------------------------------------------------
 	MOV R0, #0x2000  ; R0 ahora tiene la DIRECCIÓN 0x2000
 	LDR R1, [R0]     ; "Load": Ve a la dirección que dice R0 y trae lo que haya ahí a R1
-------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 
     - Si en la RAM, en la posición 0x2000, hay un 99...
     - Después de ese LDR, R1 valdrá 99.
