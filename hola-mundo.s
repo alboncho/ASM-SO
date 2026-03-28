@@ -14,22 +14,22 @@ _start:
     /* 1. Preparar el mensaje */
 
     /*  
-    - 'ldr'   load register 
-    - 'r0'    el registro, como cajita dentro del CPU donde guardamos numeros
+    - 'ldr' = load register 
+    - 'r0'  = el registro, como cajita dentro del CPU donde guardamos numeros
     - '=hola_texto' significa: "la direccion de memoria donde empieza el texto", es como si 'r0' apuntara al principio de la frase.    */
     ldr r0, =hola_texto   @ Guardar en 'r0' la direccion del texto
     
 /* 2. El bucle para imprimir (carácter por carácter) */
 imprimir:
     /*  
-    - 'ldrb'  load register byte
-    - 'r1'    es otra cajita (registro) donde guardamos el dato.
-    - '[r0]'  significar: "ve a la direccion que esta en r0 y saca el  byte que hay alli".
-    - '#1'    significa: "despues de cargar, suma 1 a r0 para que apunte al siguiente caracter".                 */
+    - 'ldrb' = load register byte
+    - 'r1'   = es otra cajita (registro) donde guardamos el dato.
+    - '[r0]' = significar: "ve a la direccion que esta en r0 y saca el  byte que hay alli".
+    - '#1'    significa: "despues de cargar, suma 1 a 'r0' para que apunte al siguiente caracter".                 */
     ldrb r1, [r0], #1     @ Carga 1 byte en r1 y suma 1 a r0 (puntero)
 
     /* 
-    - 'cmp'     significa "compare"
+    - 'cmp' = significa "compare"
     - comparamos 'r1' con '0'
     - '#0'      es el numero 0, En ACII, el 0 significa fin de cadena (el caracter nulo \0).
     - El resultado de esta comparacion se guarda en las "bnaderas" del CPU.       */
@@ -38,7 +38,7 @@ imprimir:
     /* 
     - 'beq'     significa "branch if equals" (salta si son iguales)
     - Si la comparacion anterior dijo r1 era igual a 0, saltamos a la etiqueta 'fin'
-    - Esto es para saber si llegamos al final del texto .*/
+    - Esto es para saber si llegamos al final del texto     .*/
     beq fin               @ Si r1 es 0, saltamos al final
 
     /* 3. Mandar el carácter al dispositivo UART */
@@ -49,19 +49,19 @@ imprimir:
     ldr r2, =0xff201000   @ Dirección de la "Consola" en CPulator
 
     /*
-    - 'str'     significa "store register" (guardar registro)
+    - 'str' = significa "store register" (guardar registro)
     - Guardamos el valor 'r1' (que es el caracter) en la direccion que tiene 'r2' (la consola)  
     - Asi el caracter aparece en la pantalla            */
     str r1, [r2]          @ Escribe el carácter en la consola
     
     /*
-    - 'b'   Significa "branch" (salta)       
+    - 'b' = significa "branch" (salta)       
     - Esto hace que el programa vuelvea a la etiqueta 'imprimir' para repetir el proceso con la siguiente letra         */
     b imprimir            @ Vuelve a repetir para la siguiente letra
 
 fin:                @ Etiqueta que marca el final del programa.        
-    /*ldr
-    - 'b fin'   hace qu el programa salte a si mismo, creando un bucle infinito
+    /*
+    - 'b fin' = hace qu el programa salte a si mismo, creando un bucle infinito
     - Esto es necesario porque si el programa termina, el CPU seguiria ejecutando basura y podria romperse      */
     b fin                 @ Bucle infinito para que el CPU no explote
 
