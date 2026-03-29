@@ -275,8 +275,43 @@ dw 0xAA55
 ✔️ La BIOS busca estos dos bytes al final del sector 1
 ✔️ Si los encuentra, dice: "Este es un bootloader valido" y lo ejecuta
 
+✔️ En x86:
 
+    byte = 8 bits
+    word = 16 bits
+    dword = 32 bits
 
+🛠️ ¿Cómo lo pruebas tú mismo?
+
+Intalar QEMU, que es un emulador de hardware puro.
+
+    1️⃣️ Instala NASM y QEMU (si estas en Linux/WSL)
+        $ sudo apt install nasm qemu-system-x86
+    2️⃣️ Compila 
+        $ nasm -f bin boot.asm -o boot.bin
+    3️⃣️ Ejecuta QEMU
+        $ qemu-system-x86_64 -drive format=raw,file=boot.bin
+
+✏️ Explicacion de comandos
+
+🔸️nasm -f bin boot.asm -o boot.bin
+
+Si no usas NASM, el procesador no entendería nada. El CPU no sabe qué es mov o jmp; él solo entiende números hexadecimales (OpCodes) como B8, E9, etc.
+
+    ✔️ nasm: El programa que traduce tu código humano (Assembly) a lenguaje de máquina.
+    ✔️ -f bin: (Formato Binario). Es CRUCIAL. Normalmente, los compiladores crean archivos .exe o .elf que tienen cabeceras para Windows o Linux. Como tú estás creando el sistema operativo, no quieres cabeceras. Quieres el binario "puro" (raw), tal cual lo escribiste, para que la BIOS lo lea directamente.
+    ✔️ boot.asm: Tu archivo de texto con las instrucciones.
+    ✔️ -o boot.bin: El nombre del archivo de salida (Output). Este archivo pesará exactamente 512 bytes.
+
+🔸️ qemu-system-x86_64 -drive ...
+
+QEMU no es un reproductor de video; es una computadora virtual. Crea un procesador, memoria RAM y una pantalla falsos dentro de tu Windows/Linux.
+
+    ✔️ qemu-system-x86_64: Le dice a QEMU: "Simula una computadora con arquitectura de 64 bits" (como tu Ryzen 7).
+        -drive: Le estás diciendo qué "disco duro" va a tener esa PC virtual, le dices "voy a conectarte a un disco duro"
+
+    ✔️ format=raw: Le avisas que el archivo no es un disco virtual complejo (como un .vdi de VirtualBox), sino un archivo de datos puros y directos.
+    ✔️ file=boot.bin: Le indicas que use tu archivo de 512 bytes como si fuera el Disco Maestro.
 
 
 
