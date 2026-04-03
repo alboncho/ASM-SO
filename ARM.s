@@ -151,3 +151,35 @@ hola_texto:
     - El '\n' es un salto de linea
     - Al final, automaticamente añade un 0 (caracter nulo) para saber donde termina     */
     .asciz "Hola Mundo, alboncho!\n"
+
+
+
+
+/* USANDO 'bx' 'lr' & 'bl'
+
+.global _start
+_start:
+    ldr r0, =alboncho
+    bl imprimir
+
+fin:
+    b fin
+
+imprimir:
+loop:
+    ldrb r1, [r0], #1
+    cmp r1, #0
+    beq done
+
+    ldr r2, =0xff201000
+    str r1, [r2]
+
+    b loop
+
+done:
+    bx lr
+
+.data
+alboncho:
+    .asciz "alboncho el mejor"
+------------------------------ */
