@@ -9,19 +9,22 @@ Los temas que mencionaste (sincronización, concurrencia, interbloqueo) pertenec
 	2️⃣️ Procesos y CPU
 		- Hilos (threads), Sincronización, Concurrencia, Deadlocks, Planificación (Scheduling).
 	3️⃣️ Administración de Memoria (Índice Completo)
-		2.1. Antecedentes y Hardware Base
-    		- Arquitectura Von Neumann: La base de todo (CPU + Memoria + E/S).
-    		- Tecnologías de Almacenamiento:
-        		- Núcleos de Ferrita (Memoria de anillos magnéticos antigua).
-        		- Escalas de Integración (SSI, MSI, LSI, VLSI): De pocos transistores a millones.
-        		- Memoria ROM y RAM Física.
+	
+		[NIVEL ANTECEDENTE Y HARDWARE BASE]
+			2.1. Antecedentes y Hardware Base
+		 		- Arquitectura Von Neumann: La base de todo (CPU + Memoria + E/S).
+		 		- Tecnologías de Almacenamiento:
+		     		- Núcleos de Ferrita (Memoria de anillos magnéticos antigua).
+		     		- Escalas de Integración (SSI, MSI, LSI, VLSI): De pocos transistores a millones.
+		     		- Memoria ROM y RAM Física.
 
-	    2.2. Conceptos de Gestión y Control
-    		- Gestión de Espacio: Direcciones disponibles, ocupadas y libres.
-    		- Mecanismos de Control:
-        		- Registro de Frontera (Limit Register): Para que un proceso no se pase a la memoria de otro.
-        		- Unidad de Gestión de Memoria (MMU): Traducción de direcciones.
-
+			 2.2. Conceptos de Gestión y Control
+		 		- Gestión de Espacio: Direcciones disponibles, ocupadas y libres.
+		 		- Mecanismos de Control:
+		     		- Registro de Frontera (Limit Register): Para que un proceso no se pase a la memoria de otro.
+		     		- Unidad de Gestión de Memoria (MMU): Traducción de direcciones.
+		     		
+		[MUNDO 1: GESTION DE MEMORIA PRINCIPAL (todo en RAM)]
 		2.3. Sistemas Monotarea y Asignación Contigua Simple
     		- Uso definido de memoria: Un solo proceso es dueño de todo.
     		- Técnica de Overlays (Superposiciones): Cómo meter un programa grande en una memoria chica dividiéndolo por partes (Aquí entra lo de .POO - Program Overlays Object).
@@ -49,13 +52,32 @@ Los temas que mencionaste (sincronización, concurrencia, interbloqueo) pertenec
 
 		2.7. Asignación Particionada Paginada Simple y Segmentada Simple
    			- Paginación Simple: División en bloques físicos (Frames) y páginas lógicas.
-        		- PMT (Page Map Table): Tabla de páginas.
-    		- Segmentación Simple: División por módulos lógicos (Código, Datos, Stack).
-        		- SMT (Segment Map Table): Tabla de segmentos (Dirección inicial, final, estado).
-
+        			- PMT (Page Map Table): Tabla de páginas.
+        			- Algoritmos de Traduccion de Direcciones (NUEVO)
+        				- Traduccion Directa (usando tablas en memoria)
+        				- Traduccion Asociativa (Uso de Memoria Caché / Registros Asociativos para no ir a la RAM cada vez)
+        				- Costo de ubicaar una direccion (Tiempo de acceso)
+    			- Segmentación Simple: División por módulos lógicos (Código, Datos, Stack).
+        			- SMT (Segment Map Table): Tabla de segmentos (Dirección inicial, final, estado).
+        			- Criterios de asignacion (NUEVO): Como los segmentos son de tamaños variables, usan los mismo algoritmos que la particion dinamica (Primer ajuste, peor ajuste, mejor ajuste, siguiente ajuste) para buscar huecos en la RAM
+        			
+		[MUDNO 2: MEMORIA VIRTUAL (RAM + DISCO)]
 		2.8. Memoria Virtual (Paginación y Segmentación por Demanda)
     		- RAM + DASP (Direct Access Storage Device / Disco): Uso de SWAP.
     		- Asignación Paginada Dinámica/Demanda: Solo cargas lo que usas.
+    			- Fallo de Pagina (Page Fault) y la grafica tj(x) vs NP(Y) (Hiperpaginacion/Thrashing)
+    			- Bit de control de PMT (NUEVO)
+	    			- Bits de referencia/Uso: "1" si la pagina fue leida hace poco, "0" si nadie la toca.
+   	 			- Bit de modificado (Dirty Bit): "1" si se altero y hay que guardarla en el disco antes de borrarla.
+   	 			- Bit de Presencia/Reemplazo: "1" si eta en RAM, "0" si esta en el disco.
+   	 		- Algoritmos de Reemplazo de Pagina (NUEVO): Quien se va dela RAM cuando esta llena)
+   	 			- FIFO: El primero en entrar es el primero en salir.
+   	 			- LIFO: El ultimo en entrar es el primero en salir (poco usado)
+   	 			- OPT (optimo): Reemplaza la pagina que tardara mas tiempo en volver a usarse (imposible en la vida real, es solo teorico)
+   	 			- LRU (Least Recently Used): Saca a la que lleva mas tiempo si nser usada.
+   	 			- NRU (Not Recently Used): Saca a la que no se ha usado en el ultimo siclo de reloj
+   	 			- Clock (Algoritmo del Reloj a fondo): Una mancecilal gira por los amrcos de RAM apagando el "Bit de Referencia" buscnado una victima.
+   	 		- Conjunto de trabajo (Working Set) y Ventanas: Cuantas paginas necesita un proceso activamente para no colapsar.
     		- Asignación Segmentada Dinámica/Demanda: Segmentos que cargan cuando se llaman.
 			- Lo que me preguntaste de la gráfica tj(x) y NP(y)
 
@@ -64,7 +86,7 @@ Los temas que mencionaste (sincronización, concurrencia, interbloqueo) pertenec
  	5️⃣️ Gestión de archivos
 	6️⃣️ Seguridad y performance de los sistemas operativos 
 
-1️⃣️ Conceptos Generales (El "Traductor")
+📎️ Conceptos Generales (El "Traductor")
 
 Imagina que el hardware (procesador, RAM) habla un idioma eléctrico muy complejo. Tú, como usuario, hablas un idioma de "ventanas y clics". El Sistemas Operativo es el traductor y el policía de tráfico.
 Conceptos que debes dominar hoy:
@@ -96,7 +118,7 @@ Cuando hablamos de S.O., la CPU (Unidad Central de Procesamiento) es el "Cerebro
     ☑️ Aunque parece que tu computadora hace 10 cosas a la vez (escuchar música, escribir, navegar), la CPU en realidad solo puede hacer una micro-tarea a la vez.
     ☑️ Lo que hace el S.O. es engañarnos: le da 1 milisegundo a la música, 1 milisegundo al mouse, 1 milisegundo al teclado. Eso se llama Conmutación de Contexto.
 
-🟪️ ¿Semáforos? (No son los de la calle, pero se parecen)
+📎️ ¿Semáforos? (No son los de la calle, pero se parecen)
 
 En programación, un Semáforo es una variable especial (un número) que sirve para controlar el acceso a un recurso compartido (como una impresora o una variable en memoria).
 
@@ -110,7 +132,7 @@ Imagina un baño público con 3 cabinas:
 
     En resumen: El semáforo es un contador que decide quién pasa y quién espera para que no choquen (Concurrencia).
 
-🟠️ ¿Y los Monitores?
+📎️ ¿Y los Monitores?
 
 Si el Semáforo es un "contador" que tú como programador debes cuidar de no arruinar, el Monitor es como una "Habitación Segura".
 
@@ -118,7 +140,7 @@ Si el Semáforo es un "contador" que tú como programador debes cuidar de no arr
     ☑️ En un Monitor, el lenguaje de programación garantiza que solo un proceso a la vez esté dentro de esa habitación ejecutando código.
     ☑️ Si alguien ya está adentro "escribiendo en el archivo", los demás que intenten entrar se quedan automáticamente en una fila afuera. Tú no tienes que andar subiendo o bajando números manualmente como en los semáforos.
 
-🟠️ Diferencia rápida:
+📎️ Diferencia rápida:
 
     - Semáforo: Es una herramienta manual (tú controlas el número). Si te olvidas de "subirlo" al salir, dejas a todos bloqueados para siempre (un error común).
     - Monitor: Es una herramienta automática. El compilador se encarga de que nadie choque adentro.
@@ -127,7 +149,7 @@ Si el Semáforo es un "contador" que tú como programador debes cuidar de no arr
 
 Todo esto sigue siendo del Punto 2: Administración de procesos. Se llama "Sincronización de Procesos". Sin semáforos ni monitores, tu computadora colapsaría porque dos procesos intentarían usar el mismo espacio de memoria al mismo tiempo.
 
-🟪️ ¡Perfecto! Vamos a usar un ejemplo clásico para entender cómo se llega a un Interbloqueo (Deadlock) usando Semáforos.
+📎️ ¡Perfecto! Vamos a usar un ejemplo clásico para entender cómo se llega a un Interbloqueo (Deadlock) usando Semáforos.
 
 Imagina que tenemos dos procesos (como dos pestañas de Chrome o dos programas) llamados Proceso A y Proceso B. Ambos necesitan usar dos recursos: el Escáner y la Impresora.
 
@@ -160,21 +182,21 @@ Aquí es donde ocurre el error por falta de sincronización. Imagina que ambos p
     - B no suelta la Impresora hasta que tenga el Escáner.
     - Ambos se quedan congelados para siempre. ---
 
-🟠️ ¿Cómo se soluciona esto? (Sincronización)
+📎️ ¿Cómo se soluciona esto? (Sincronización)
 
 El Sistema Operativo tiene varias estrategias que verás en tu materia:
 
     ☑️ Prevención: Obligar a que todos pidan los recursos en el mismo orden (Primero siempre el Escáner, luego la Impresora). Así, si B intenta pedir la impresora antes, el S.O. no lo deja hasta que A termine.
     ☑️ Detección y Recuperación: El S.O. se da cuenta de que nadie se mueve y "mata" a uno de los procesos para liberar sus llaves.
     ☑️ Algoritmo del Banquero: El S.O. analiza si darte una llave te va a llevar a un choque. Si ve peligro, te dice "No, espera aunque la llave esté ahí".
-
-🟪️ Perfecto, vamos con las Interrupciones. Este es el concepto que une el hardware (lo físico) con el software (el S.O.).
+    
+📎️ Perfecto, vamos con las Interrupciones. Este es el concepto que une el hardware (lo físico) con el software (el S.O.).
 
 Imagina que estás en tu cuarto estudiando (eres la CPU) y estás muy concentrado leyendo un libro (ejecutando un Proceso). De repente, suena el timbre de la casa.
 
 ¿Qué haces? No puedes ignorarlo para siempre. Dejas un separador en la página que ibas, vas a la puerta, atiendes a quien llegó, y luego regresas exactamente a la misma línea donde te quedaste. Eso es una interrupción.
 
-🟠️ ¿Cómo funciona en la computadora?
+📎️ ¿Cómo funciona en la computadora?
 
     ☑️ Ejecución normal: La CPU está procesando un programa (ej. Word).
     ☑️ Evento de Hardware: Alguien presiona una tecla o llega un paquete de datos por internet. El hardware envía una señal eléctrica a la CPU.
@@ -182,7 +204,7 @@ Imagina que estás en tu cuarto estudiando (eres la CPU) y estás muy concentrad
     ☑️ Atención (ISR): La CPU salta a una parte del Sistema Operativo llamada Manejador de Interrupciones (Interrupt Service Routine). El S.O. dice: "Ah, presionaron la letra 'A', ponla en el documento".
     ☑️ Retorno: Una vez atendida la emergencia, la CPU recupera el "separador" y sigue con el programa original como si nada hubiera pasado.
 
-🟠️ ¿Por qué son tan importantes? (Conexión con el Punto 2)
+📎️ ¿Por qué son tan importantes? (Conexión con el Punto 2)
 
 Sin interrupciones, la CPU tendría que estar preguntando a cada rato: "¿Ya moviste el mouse? ¿Ya? ¿Y ahora? ¿Ya terminó la impresora?". A esto se le llama Polling (encuesta) y es una pérdida de tiempo total.
 
@@ -197,17 +219,17 @@ Reloj (Timer)	         El S.O.      	Es la más importante. Cada pocos milisegun
 										la CPU para que el S.O. pueda quitarle el turno a un proceso y 		
 										dárselo a otro (Multitarea).
 
-🟠️ ¿Cómo se relaciona esto con lo que ya vimos?
+📎️ ¿Cómo se relaciona esto con lo que ya vimos?
 
 ¿Recuerdas el Deadlock o los Semáforos? El Sistema Operativo usa las interrupciones de reloj para asegurarse de que si un proceso se queda "trabado" o esperando un semáforo demasiado tiempo, no congele toda la computadora. El S.O. retoma el control gracias a la interrupción y decide qué hacer.
 
-🟪️ ¡Excelente! Entramos a la Planificación del Procesador (CPU Scheduling).
+📎️ ¡Excelente! Entramos a la Planificación del Procesador (CPU Scheduling).
 
 Si el S.O. es el policía de tránsito, la Planificación es el semáforo inteligente que decide: "¿A qué proceso le doy la CPU ahora y por cuánto tiempo?".
 
 Imagina una fila en el banco. Hay diferentes formas de atender a la gente, y cada una tiene sus ventajas y desventajas. En Sistemas Operativos, estas formas se llaman Algoritmos de Planificación.
 
-🟠️ Conceptos Clave
+📎️ Conceptos Clave
 
 Antes de ver los algoritmos, debes conocer dos términos que seguro te preguntarán:
 
@@ -217,11 +239,11 @@ Antes de ver los algoritmos, debes conocer dos términos que seguro te preguntar
 		 - No Preoperativo: Si un proceso toma la CPU, no la suelta hasta que termina o se bloquea solo.
 		 - Preoperativo (Apropiativo): El S.O. tiene el poder de interrumpir al proceso a mitad de camino para darle la CPU a otro (es el más común hoy en día).
 
-🟠️ Los Algoritmos más comunes
+📎️ Los Algoritmos más comunes
 
 Aquí es donde los libros de Silberschatz o Stallings se ponen intensos con ejercicios matemáticos. Veamos los 4 principales:
 
-🟠️ FCFS (First-Come, First-Served)
+📎️ FCFS (First-Come, First-Served)
 
 Es la fila del súper: el primero que llega es el primero que se atiende.
 
@@ -249,18 +271,18 @@ Cada proceso tiene un número de importancia. El S.O. siempre atiende al de mayo
 
     Dato curioso: Para evitar que un proceso de baja prioridad muera de "hambre", se usa el Envejecimiento (Aging): entre más tiempo espera un proceso, más sube su prioridad automáticamente.
 
-🟪️ ¡Esa es la pregunta del millón! La respuesta corta es: El Sistema Operativo es quien decide, pero lo hace a través de un componente específico llamado Planificador (Scheduler).
+📎️ ¡Esa es la pregunta del millón! La respuesta corta es: El Sistema Operativo es quien decide, pero lo hace a través de un componente específico llamado Planificador (Scheduler).
 
 Aquí es donde la teoría que acabamos de ver se encuentra con la realidad de tu computadora:
 
-🟠️ El "Jefe de Tráfico": El Scheduler y el Dispatcher
+📎️ El "Jefe de Tráfico": El Scheduler y el Dispatcher
 
 En el Punto 2 de tu materia, verás que hay dos entidades trabajando juntas:
 
     ☑️ El Scheduler (Planificador): Es el "cerebro". Él mira la lista de procesos que están listos para ejecutarse y, basándose en el algoritmo (como Round Robin), elige cuál sigue.
     ☑️ El Dispatcher (Despachador): Es el "brazo ejecutor". Es el que realmente quita al proceso actual de la CPU, guarda su estado (el "separador de libros" que vimos en las interrupciones) y sienta al nuevo proceso en la "silla" del procesador.
 
-🟠️ ¿Qué algoritmo usa una CPU real (Windows, Linux, Mac)?
+📎️ ¿Qué algoritmo usa una CPU real (Windows, Linux, Mac)?
 
 En la vida real, los sistemas operativos no usan un solo algoritmo puro (como solo Round Robin o solo SJF). Usan algo más inteligente llamado Colas Multinivel con Retroalimentación (Multilevel Feedback Queues).
 
@@ -272,25 +294,25 @@ Imagina que el S.O. tiene varias filas, no solo una:
 
 Lo "inteligente": Si un proceso en la fila de alta prioridad se porta mal y usa demasiada CPU, el S.O. lo "castiga" y lo baja a una fila de menor prioridad. Si un proceso lleva mucho tiempo esperando abajo, el S.O. le aplica Aging (Envejecimiento) y lo sube de fila.
 
-🟠️ ¿Quién decide qué algoritmo usar?
+📎️ ¿Quién decide qué algoritmo usar?
 
 Tú no lo decides, ni el procesador (Intel/AMD) tampoco. Lo decide el equipo que programó el Kernel del Sistema Operativo.
 
     ☑️ Los ingenieros de Microsoft decidieron qué algoritmo usa Windows para que los juegos corran bien.
     ☑️ Los ingenieros de Linux decidieron usar uno llamado Completely Fair Scheduler (CFS), que trata de que todos los procesos reciban exactamente la misma proporción de la CPU.
 
-🟪️ ¡Qué buen ojo! Los Hilos (o Threads) son fundamentales porque son la evolución de los procesos. Si el proceso es el "contenedor", el hilo es el que "hace el trabajo".
+📎️ ¡Qué buen ojo! Los Hilos (o Threads) son fundamentales porque son la evolución de los procesos. Si el proceso es el "contenedor", el hilo es el que "hace el trabajo".
 
 Para entenderlo fácil: Un Proceso es como una Casa, y los Hilos son las Personas que viven dentro.
 
-🟠️ ¿Qué es un Hilo?
+📎️ ¿Qué es un Hilo?
 
 Un hilo es la unidad básica de utilización de la CPU. Es básicamente un "mini-proceso" que vive dentro de un proceso padre.
 
     ☑️ Proceso: Es pesado. Crear uno nuevo requiere mucha memoria porque el S.O. tiene que asignarle su propio espacio aislado.
     ☑️ Hilo: Es liviano. Varios hilos dentro de un mismo proceso comparten la misma memoria (la misma cocina, el mismo baño de la casa), pero cada uno tiene su propia tarea (uno cocina, otro limpia).
 
-🟠️ ¿Dónde se encuentran los hilos?
+📎️ ¿Dónde se encuentran los hilos?
 
 Viven dentro del espacio de direcciones de un proceso.
 
@@ -299,7 +321,7 @@ Imaginalo así:
     ☑️ El Proceso tiene el código, los archivos abiertos y los datos (variables globales).
     ☑️ Cada Hilo tiene su propio "PC" (Program Counter para saber qué línea de código está leyendo) y su propio "Stack" (para sus variables locales).
 
-🟠️ Ejemplo en la vida real: Tu navegador (Chrome/Brave)
+📎️ Ejemplo en la vida real: Tu navegador (Chrome/Brave)
 
 Cuando abres una pestaña de tu navegador, eso es un Proceso. Pero dentro de esa pestaña pasan muchas cosas al mismo tiempo gracias a los hilos:
 
@@ -309,7 +331,7 @@ Cuando abres una pestaña de tu navegador, eso es un Proceso. Pero dentro de esa
 
 Si no hubiera hilos, la página se "congelaría" mientras descarga las fotos y no podrías ni mover el mouse dentro de ella.
 
-🟠️ ¿Por qué se usan? (Beneficios)
+📎️ ¿Por qué se usan? (Beneficios)
 
     ☑️ Economía: Es mucho más rápido crear un hilo que un proceso.
 
@@ -327,11 +349,11 @@ Resumen para tu examen:
     ☑️ Los hilos de un mismo proceso comparten: Código, Datos y Recursos (archivos).
     ☑️ Los hilos de un mismo proceso NO comparten: Registro de CPU y Pila (Stack).
 
-🟪️ ¡Excelente pregunta! Estos términos se parecen mucho y a menudo se usan como sinónimos en la calle, pero en tu clase de Sistemas Operativos tienen significados técnicos muy específicos.
+📎️ ¡Excelente pregunta! Estos términos se parecen mucho y a menudo se usan como sinónimos en la calle, pero en tu clase de Sistemas Operativos tienen significados técnicos muy específicos.
 
 Para entenderlo, imagina que la CPU es un cocinero.
 
-🟠️ Multitarea (Multitasking)
+📎️ Multitarea (Multitasking)
 
 La multitarea es una ilusión de simultaneidad. Es cuando un solo procesador (un solo núcleo) alterna tan rápido entre varios procesos que parece que los está haciendo todos a la vez.
 
@@ -339,14 +361,14 @@ La multitarea es una ilusión de simultaneidad. Es cuando un solo procesador (un
     - En nuestro ejemplo: Un solo cocinero pica cebolla por 5 segundos, luego revuelve la sopa por 5 segundos, luego corta carne por 5 segundos. Al final, las tres cosas avanzan "al mismo tiempo", pero el cocinero solo tiene un par de manos.
     - Clave: La multitarea se refiere a la capacidad del S.O. de manejar muchos programas con un solo procesador.
 
-🟠️ Multiproceso (Multiprocessing)
+📎️ Multiproceso (Multiprocessing)
 
 El multiproceso es simultaneidad real. Es cuando tienes dos o más CPUs (o núcleos) físicos trabajando de verdad al mismo tiempo.
 
     - Cómo funciona: El S.O. asigna el Proceso A a la CPU 1 y el Proceso B a la CPU 2. Ambos se ejecutan en el mismo instante de tiempo.
     - En nuestro ejemplo: Tienes a dos cocineros. Uno está picando cebolla mientras el otro, al mismo tiempo, está revuelta la sopa. No hay engaño, hay más "músculo" de hardware.
 
-🟠️ Diferencias rápidas para tu examen
+📎️ Diferencias rápidas para tu examen
 
 Concepto		¿Qué lo hace posible?									Característica principal
 ---------------------------------------------------------------------------------------------------------
@@ -354,12 +376,12 @@ Multitarea		El Software (Algoritmos de planificación del S.O.)		Alterna proceso
 																		(Conmutación de contexto).
 Multiproceso	El Hardware (Tener varios núcleos o CPUs)				Ejecuta procesos en paralelo real.
 
-🟠️ ¿Cómo se conectan con lo que ya vimos?
+📎️ ¿Cómo se conectan con lo que ya vimos?
 
     ☑️ Multiproceso + Hilos: Si tienes un programa con muchos hilos (como un editor de video) y una computadora con multiproceso, el S.O. mandará cada hilo a un núcleo distinto. ¡Ahí es cuando tu PC vuela!
     ☑️ Multitarea + Interrupciones: La multitarea depende totalmente de la interrupción de reloj. Si el reloj no interrumpiera al proceso actual, este se quedaría con la CPU para siempre y no habría multitarea.
 
-🟠️ Un dato extra: Multiprogramación
+📎️ Un dato extra: Multiprogramación
 
 A veces los profesores lanzan este tercer término. La Multiprogramación es simplemente tener varios procesos cargados en la memoria RAM al mismo tiempo, listos para que la CPU los use. Si no hay multiprogramación, no puede haber multitarea.
 
