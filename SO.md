@@ -703,9 +703,14 @@ Todos los procesos están en una sola fila. Cuando se libera cualquier partició
 
 Tu profesor te pidió calcular qué tan bien estamos usando la memoria. Aquí están las claves:
 
+`U = (Memoria ocupada por procesos / Memoria total de usuario) × 100%`
+
    - **Uso de Memoria:** Es la suma de los tamaños de los procesos que están corriendo actualmente.
    - **Desperdicio:** Es la memoria que no se usa.
+   `Desperdicio = Fragmentación interna total + Memoria libre en particiones vacías`
    - **Nivel de Multiprogramación (NM):** Es simplemente cuántos procesos hay en la memoria en un momento dado. Si hay 3 procesos en 3 particiones, el NM=3.
+   `NM_real = Número de particiones ocupadas en un instante dado`
+
 
 #### Fragmentación Real (Interna)
 
@@ -808,7 +813,7 @@ Para solucionar esto, inventamos la separación entre lo que el programa cree qu
 Aquí es donde ocurre la magia en tiempo de ejecución. La CPU usa un registro especial (físico) para hacer la suma al vuelo.
 
 La fórmula mágica de la MMU:
-            Dirección Física = Dirección Lógica + Registro de Relatividad (Base)
+            `Dirección Física = Dirección Lógica + Registro de Relatividad (Base)`
 
 #### Ejemplo paso a paso
 
@@ -862,6 +867,7 @@ El gran problema de la paginación es que, para leer un solo dato, la CPU tiene 
 
 Es el método básico. La **PMT** (Tabla de Mapas de Página) se guarda íntegramente en la Memoria RAM.
 
+
    - **Proceso:**
       1. La CPU quiere la dirección lógica (p,d) —página y desplazamiento—.
       2. La CPU va a la RAM a buscar la PMT.
@@ -869,6 +875,14 @@ Es el método básico. La **PMT** (Tabla de Mapas de Página) se guarda íntegra
       4. Vuelve a ir a la RAM, pero ahora a la dirección física real para traer el dato.
 
    - **Problema:** Es muy lento porque la RAM, aunque es rápida, no le llega ni a los talones a la velocidad de la CPU. Ir dos veces a la RAM por cada instrucción hace que la computadora se sienta a la mitad de su velocidad real.
+
+*Formula de direccion fisica:*
+`Dirección Física = (Nº Marco × Tamaño de página) + Desplazamiento`
+
+*Formula de acceso efectivo (sin cache):*
+`t_efectivo = 2 × t_RAM`
+
+(donde t_RAM es el tiempo de acceso a memoria)
 
 ###### 2. Traducción Asociativa (El camino rápido)
 
@@ -883,6 +897,9 @@ Aquí es donde entra el hardware especial: los Registros Asociativos o la famosa
       3. Si está (Hit): Obtiene el Marco inmediatamente. Solo hace un acceso a la RAM (para el dato).
       4. Si no está (Miss): Tiene que hacer el camino largo (Traducción Directa), pero guarda el resultado en la TLB para la próxima vez.
 
+*Tiempo de acceso efectivo:*
+`t_efectivo = (t_TLB + t_RAM) × Prob_acierto + (t_TLB + 2×t_RAM) × (1 - Prob_acierto)`
+
 ###### 3. Costo de ubicar una dirección (Tiempo de Acceso Efectivo)
 
 En la UMSA suelen pedirte que calcules esto matemáticamente. Se llama EAT (Effective Access Time).
@@ -896,7 +913,7 @@ En la UMSA suelen pedirte que calcules esto matemáticamente. Se llama EAT (Effe
 **La fórmula:**
 
 ```
-                              EAT = h⋅(c+m) + (1−h) ⋅ (c+2m)
+                  EAT = h⋅(c+m) + (1−h) ⋅ (c+2m)
 ```
 
    - **Traducción:** Si aciertas (h), pagas el tiempo de la TLB y un acceso a RAM. Si fallas (1−h), pagas la TLB y dos accesos a la RAM (uno por la tabla y otro por el dato).
@@ -911,6 +928,105 @@ Si la RAM tarda 100 ns, la TLB 20 ns y acertamos el 90% de las veces, ¿cuál es
 
 **Conclusión:** Sin TLB, siempre tardarías 200 ns (dos viajes a RAM). Con la traducción asociativa, bajaste el costo a 130 ns. ¡Mucho mejor!
 
+##### Ejercicio
+
+*Un sistema tiene páginas de 2 KB. Un proceso P1 tiene 3 páginas cargadas en RAM según su PMT:*
+
+|Página|	Marco|	Presencia|
+|--|--|--|
+|0|	5|	1|
+|1|	3|	1|
+|2|	7|	1|
+
+Tamaño de página = 2 KB = 2048 bytes.
+
+Preguntas:
+a) ¿Cuántos bits para desplazamiento y cuántos para página si la dirección lógica es de 16 bits?
+b) Traduzca las siguientes direcciones lógicas a físicas (en decimal):
+
+- 1500
+- 3200
+- 5000
+ 
+c) Si t_RAM = 100 ns y t_TLB = 20 ns, con probabilidad de acierto TLB = 90%, calcule el tiempo de acceso efectivo con y sin TLB.
+
+**Resolución**
+**a) Bits para página y desplazamiento**
+
+Tamaño de página = 2 KB = 2048 bytes = 2^11.
+
+- Bits de desplazamiento (d) = 11 (para direccionar dentro de la página).
+- Dirección lógica total = 16 bits.
+- Bits de página (p) = 16 - 11 = 5 (máximo 2^5 = 32 páginas por proceso).
+
+**b) Traducción de direcciones**
+
+Fórmula general:
+
+```
+Nº Página    = Dirección Lógica / Tamaño de página (división entera)
+Desplazamiento = Dirección Lógica % Tamaño de página (módulo)
+Dirección Física = (Nº Marco × Tamaño de página) + Desplazamiento
+```
+
+Dirección 1500:
+
+```
+Nº Página = 1500 / 2048 = 0
+Desplazamiento = 1500 % 2048 = 1500
+Nº Marco (según PMT, página 0) = 5
+Dirección Física = (5 × 2048) + 1500 = 10240 + 1500 = 11740
+```
+
+Respuesta: Dir. Lógica 1500 → Dir. Física 11740
+
+Dirección 3200:
+
+```
+Nº Página = 3200 / 2048 = 1 (porque 1×2048 = 2048, 2×2048 = 4096 > 3200)
+Desplazamiento = 3200 % 2048 = 1152
+Nº Marco (página 1) = 3
+Dirección Física = (3 × 2048) + 1152 = 6144 + 1152 = 7296
+```
+
+Respuesta: Dir. Lógica 3200 → Dir. Física 7296
+
+Verificación: 3200 - 2048 = 1152, justo el desplazamiento.
+
+Dirección 5000:
+
+```
+Nº Página = 5000 / 2048 = 2 (2×2048 = 4096, 3×2048 = 6144)
+Desplazamiento = 5000 % 2048 = 904
+Nº Marco (página 2) = 7
+Dirección Física = (7 × 2048) + 904 = 14336 + 904 = 15240
+```
+
+Respuesta: Dir. Lógica 5000 → Dir. Física 15240
+
+**c) Tiempo de acceso efectivo**
+
+Sin TLB (solo traducción directa):
+
+```
+t_efectivo = 2 × t_RAM = 2 × 100 ns = 200 ns
+```
+
+Con TLB (t_TLB = 20 ns, prob_acierto = 0.90):
+
+```
+t_efectivo = (t_TLB + t_RAM) × 0.90 + (t_TLB + 2×t_RAM) × 0.10
+t_efectivo = (20 + 100) × 0.90 + (20 + 200) × 0.10
+t_efectivo = 120 × 0.90 + 220 × 0.10
+t_efectivo = 108 + 22 = 130 ns
+```
+
+Respuesta: Sin TLB = 200 ns, Con TLB = 130 ns. La TLB reduce un 35% el tiempo de acceso
+
+
+
+
+
 #### Segmentación Simple (División por lógica)
 
 A diferencia de la paginación, aquí dividimos el programa según lo que hace, no por su tamaño. Los trozos (segmentos) tienen tamaños diferentes.
@@ -920,6 +1036,17 @@ A diferencia de la paginación, aquí dividimos el programa según lo que hace, 
       - **Dirección Inicial (Base):** Dónde empieza el segmento en la RAM.
       - **Dirección Final o Longitud (Límite):** Dónde termina.
       - **Estado:** Si está cargado o no.
+
+##### Traducción en Segmentacion
+
+Dirección lógica: `(nº_segmento, desplazamiento)`
+
+Proceso:
+
+1. Obtener nro de segmento y desplazamiento
+2. Buscar en SMT: verificar presencia, limite.
+3. Si desplazamiento < tamaño: **DireccionFisica = Direccion Base + desplazamiento**
+4. Si desplazamiento >= tamaño: **Error de segmentacion (Segmentation Fault**
 
 ##### Diferencias Clave para tu examen:
 
@@ -994,6 +1121,153 @@ Para que esto funcione, el S.O. mantiene la SMT (Segment Map Table). En tu clase
    - **Límite:** El tamaño exacto del segmento para que no se pase de la raya.
 
    > **Dato Clave:** Si usas cualquiera de estos algoritmos, tarde o temprano tendrás que usar la Compactación que vimos antes, porque la RAM se llenará de huecos (Fragmentación Externa) y el brazo del "recolector de basura" tendrá que juntarlos.
+
+##### Ejercicio
+
+*En un sistema con segmentacion, inicialmente la RAM de usuario (400KB) tiene:*
+
+- SO: 0-60 KB (60 KB)
+- S0 (Segmento 0 de P1): 60-140 KB (80 KB)
+- Hueco H1: 140 - 220 KB (80 KB)
+- S1 (Segmento 1 de P1): 220 - 300 KB (80 KB)
+- Hueco H2: 300 - 400 KB (100 KB)
+
+*Llega un proceso P2 con tres segmentos:*
+
+- Segmento Código: 70 KB
+- Segmento Datos: 50 KB
+- Segmento Stack: 30 KB
+
+*Asigne los segmentos de P2 usando:*
+
+a) First-Fit
+b) Best-Fit
+
+*Luego, dado el SMT resultante para P2 con First-Fit, traduzca:*
+
+- Dir. Lógica (Código, 200) → a Dir. Física.
+- Dir. Lógica (Datos, 60000) → ¿qué ocurre?
+
+Resolucion:
+
+**a) First-Fit para P2**
+
+Huecos iniciales:
+
+- H1: 140 KB - 220 KB (80 KB)
+- H2: 300 KB - 400 KB (100 KB)
+
+Procesamos segmentos en orden (Código, Datos, Stack).
+
+Segmento Código (70 KB):
+
+- Recorremos huecos: H1 (80 ≥ 70) → Sirve.
+- Asignamos en H1, dirección base = 140 KB.
+- H1 se parte: nuevo H1' = (140+70=210 KB, 80-70=10 KB).
+
+```
+Memoria actualizada:
+[SO 60][S0 80][Código 70][H1' 10][S1 80][H2 100]
+ 0    60    140         210     220    300    400
+```
+
+Segmento Datos (50 KB):
+
+- Huecos: H1'(10) no sirve (10 < 50), H2(100 ≥ 50) → Sirve.
+- Asignamos en H2, base = 300 KB.
+- H2 se parte: nuevo H2' = (300+50=350 KB, 100-50=50 KB).
+```
+[SO 60][S0 80][Código 70][H1' 10][S1 80][Datos 50][H2' 50]
+ 0    60    140         210     220    300       350    400
+```
+
+Segmento Stack (30 KB):
+
+- Huecos: H1'(10) no sirve. H2'(50 ≥ 30) → Sirve.
+- Asignamos en H2', base = 350 KB.
+- H2' se parte: nuevo H2'' = (350+30=380 KB, 50-30=20 KB).
+
+```
+Mapa final:
+[SO 60][S0 80][Código 70][H1' 10][S1 80][Datos 50][Stack 30][H2'' 20]
+ 0    60    140         210     220    300       350      380    400
+```
+
+SMT de P2 (First-Fit):
+
+|Segmento|Tamaño|Direccion Base|Limite|Presencia|
+|--|--|--|--|--|
+|0 (Codigo)|70 KB| 140 KB|70 KB|1|
+|1 (Datos)|50 KB| 300 KB|50 KB|1|
+|0 (Stack)|30 KB| 350 KB|30 KB|1|
+
+**b) Best-Fit para P2**
+
+Huecos iniciales: H1(80), H2(100).
+
+Código (70 KB):
+
+- Ambos ajustan (80 y 100). Menor sobrante: H1 (sobra 10) vs H2 (sobra 30). → H1.
+- Misma base: 140 KB.
+- H1' = (210, 10).
+
+Datos (50 KB):
+
+- H1'(10) no, H2(100) sobra 50.
+- (No hay opción, solo H2). Base: 300 KB.
+- H2' = (350, 50).
+
+Stack (30 KB):
+
+- H1'(10) no, H2'(50) sobra 20.
+- Base: 350 KB.
+- H2'' = (380, 20).
+
+Resultado: Idéntico a First-Fit (coincide en este caso).
+
+SMT de P2 (Best-Fit): Igual al de First-Fit.
+
+
+**c) Traducción de Direcciones Segmentadas**
+
+Dirección Lógica: (Segmento 0, desplazamiento 200 bytes)
+
+Recordar: Dirección base en bytes.
+
+- 70 KB = 70 × 1024 = 71680 bytes.
+- Desplazamiento 200 bytes.
+- Verificar límite: ¿200 < 71680? Sí.
+- Dir. Física = Dirección Base + desplazamiento
+- Dir. Base de Segmento 0 = 140 KB = 140 × 1024 = 143360 bytes.
+- Dir. Física = 143360 + 200 = 143560 bytes.
+
+En KB: 143560 / 1024 ≈ 140.19 KB (dentro del segmento Código).
+
+Dirección Lógica: (Segmento 1, desplazamiento 60000 bytes)
+
+- Segmento 1 (Datos): tamaño = 50 KB = 51200 bytes.
+- Desplazamiento = 60000 bytes.
+- Verificar límite: ¿60000 < 51200? NO.
+- ERROR: Violación de segmento (Segmentation Fault). El proceso intenta acceder más allá del límite del segmento de datos. El MMU lo detecta y lanza una excepción.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
