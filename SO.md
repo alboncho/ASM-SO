@@ -1283,11 +1283,15 @@ El DASP es simplemente el término técnico para tu Disco Duro o SSD.
 
 En los puntos anteriores, asumíamos que para ejecutar un programa, este tenía que estar todo cargado en la RAM. Con la Memoria Virtual, eso cambia: Solo cargas lo que necesitas en el momento.
 
-Paginación por Demanda (Paginación Dinámica):
+##### Paginación por Demanda (Paginación Dinámica):
 El programa está dividido en páginas, pero solo las páginas que el CPU está leyendo ahora mismo están en la RAM.
 
    - **Bit de Presencia/Ausencia:** La Tabla de Páginas (PMT) tiene una columna extra. Si el bit es 1, la página está en RAM. Si es 0, está en el disco.
    - **Fallo de Página (Page Fault):** Si el CPU pide una página que tiene un 0, ocurre una "interrupción" (excepción). El S.O. detiene todo, va al disco, busca la página, la sube a la RAM y pone el bit en 1.
+
+*Tiempo de Fallo de Pagina (t_page_fault):*
+- Tiempo de aceso a disco (seek + latency + transferencia) = millones de ci
+- Por eso los fallos de página son carisimos.
 
 ##### Segmentación por Demanda (Segmentación Dinámica)
 
@@ -1317,7 +1321,7 @@ Este sirve para medir la "popularidad" de una página. Ayuda al S.O. a decidir q
 Este es vital para la velocidad del sistema. Indica si el contenido de la página en RAM es distinto al que está guardado en el disco.
 
    - **Si es 0 (Limpia):** La página solo se leyó. El contenido en RAM y en Disco es idéntico.
-   - **Si es 1 (Sucia):** El proceso escribió algo (cambió un dato). La copia de la RAM es "más nue+va" que la del disco.
+   - **Si es 1 (Sucia):** El proceso escribió algo (cambió un dato). La copia de la RAM es "más nueva" que la del disco.
    - **¿Por qué importa?** Cuando el S.O. decide sacar una página de la RAM para meter otra:
 
       - Si el bit es **0**, simplemente la borra (total, ya hay una copia igual en el disco). **¡Es súper rápido!**
